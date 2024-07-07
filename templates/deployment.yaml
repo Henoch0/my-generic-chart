@@ -23,7 +23,7 @@ spec:
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
       containers:
         {{- range .Values.containers }}
-        - name: {{ include "container.name" . }}
+        - name: {{ include "container.name" $ }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
           imagePullPolicy: {{ .image.pullPolicy }}
           ports:
@@ -39,3 +39,5 @@ spec:
               path: {{ .readinessProbe.httpGet.path }}
               port: {{ .readinessProbe.httpGet.port }}
         {{- end }}
+      volumes:
+        {{- toYaml .Values.deployment.volumes | nindent 8 }}

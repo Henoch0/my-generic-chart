@@ -32,10 +32,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Generate a dynamic or user-defined container name.
 */}}
 {{- define "container.name" -}}
+{{- $chartName := .Chart.Name | default "default-chart" -}}
 {{- if .name }}
 {{- .name }}
 {{- else }}
-{{- printf "%s-%s" (default .Chart.Name "default-chart") (default (replace "/" "-" .image.repository) "default-repo") | lower }}
+{{- printf "%s-%s" $chartName (replace "/" "-" (default "default-repo" .image.repository)) | lower }}
 {{- end }}
 {{- end }}
-
