@@ -19,33 +19,21 @@ spec:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ .Values.deployment.serviceAccountName }}
+      serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
-      containers:
-        {{- range .Values.containers }}
-        - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
-          image: "{{ .image.repository }}:{{ .image.tag }}"
-          imagePullPolicy: {{ .image.pullPolicy }}
-          ports:
-            {{- toYaml .ports | nindent 12 }}
-          resources:
-            {{- toYaml .resources | nindent 12 }}
-          livenessProbe:
-            {{- if .livenessProbe }}
-            httpGet:
-              path: {{ .livenessProbe.httpGet.path }}
-              port: {{ .livenessProbe.httpGet.port }}
-            {{- end }}
-          readinessProbe:
-            {{- if .readinessProbe }}
-            httpGet:
-              path: {{ .readinessProbe.httpGet.path }}
-              port: {{ .readinessProbe.httpGet.port }}
-            {{- end }}
-        {{- end }}
+    containers:
+      {{- range .Values.containers }}
+      - name: {{ default (include "common.names.fullname" .) .name | quote }}
+        image: "{{ .image.repository }}:{{ .image.tag }}"
+        imagePullPolicy: {{ default $.Values.defaultContainer.image.pullPolicy .image.pullPolicy }}
+        ports:
+          {{- toYaml (default $.Values.defaultContainer.ports .ports) | nindent 12 }}
+        resources:
+          {{- toYaml (default $.Values.defaultContainer.resources .resources) | nindent 12 }}
+        livenessProbe:
+          {{- toYaml (default $.Values.defaultContainer.livenessProbe .livenessProbe) | nindent 12 }}
+        readinessProbe:
+          {{- toYaml (default $.Values.defaultContainer.readinessProbe .readinessProbe) | nindent 12 }}
+      {{- end }}
       volumes:
-        {{- range .Values.deployment.volumes }}
-        - name: {{ include "common.names.volume" . }}
-          configMap:
-            name: {{ include "common.names.configmap" . }}
-        {{- end }}
+        {{- toYaml .Values.deployment.volumes | nindent 8 }}
