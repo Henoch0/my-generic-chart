@@ -1,5 +1,5 @@
 global:
-  imageRegistry: ""
+  imageRegistry: "docker.io"
 # Default values for my-generic-chart.
 deployment:
   replicaCount: 2
@@ -34,7 +34,7 @@ containers:
     env: []
     args: []
     volumeMounts: []
-    securityContext: {} # Keine Standardwerte
+    securityContext: {}
 
 service:
   type: ClusterIP
