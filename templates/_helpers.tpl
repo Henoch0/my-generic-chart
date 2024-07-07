@@ -35,6 +35,7 @@ Generate a dynamic or user-defined container name.
 {{- if .name }}
 {{- .name }}
 {{- else }}
-{{- default .Chart.Name .image.repository | replace "/" "-" | lower }}
+{{- printf "%s-%s" (default .Chart.Name "default-chart") (default (replace "/" "-" .image.repository) "default-repo") | lower }}
 {{- end }}
 {{- end }}
+
