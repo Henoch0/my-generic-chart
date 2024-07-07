@@ -23,7 +23,7 @@ spec:
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
       containers:
         {{- range .Values.containers }}
-        - name: {{ include "container.name" . }}
+        - name: {{ include "container.name" $ }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
           imagePullPolicy: {{ .image.pullPolicy }}
           ports:
