@@ -4,24 +4,40 @@ metadata:
   name: {{ include "common.names.fullname" . }}
   labels: {{ include "common.labels.standard" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.deployment.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+    type: {{ .Values.deployment.strategy.type }}
+    minReadySeconds: {{ .Values.deployment.strategy.minReadySeconds }}
   template:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
+      automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- range .Values.containers }}
+        - name: {{ include "container.name" . }}
+          image: "{{ .image.repository }}:{{ .image.tag }}"
+          imagePullPolicy: {{ .image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            {{- toYaml .ports | nindent 12 }}
           resources:
-            {{- if .Values.resources }}
-            {{- toYaml .Values.resources | nindent 12 }}
-            {{- end }}
-
+            {{- toYaml .resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .livenessProbe.httpGet.path }}
+              port: {{ .livenessProbe.httpGet.port }}
+          readinessProbe:
+            httpGet:
+              path: {{ .readinessProbe.httpGet.path }}
+              port: {{ .readinessProbe.httpGet.port }}
+        {{- end }}
+      volumes:
+        {{- toYaml .Values.deployment.volumes | nindent 8 }}

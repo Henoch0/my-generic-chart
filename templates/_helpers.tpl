@@ -17,3 +17,24 @@ app.kubernetes.io/name: {{ include "common.names.fullname" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
+{{/* Generate a default volume name */}}
+{{- define "common.names.volume" -}}
+{{- printf "%s-volume" (include "common.names.fullname" .) }}
+{{- end }}
+
+{{/* Generate a default configmap name */}}
+{{- define "common.names.configmap" -}}
+{{- printf "%s-config" (include "common.names.fullname" .) }}
+{{- end }}
+
+
+{{/*
+Generate a dynamic or user-defined container name.
+*/}}
+{{- define "container.name" -}}
+{{- if .name }}
+{{- .name }}
+{{- else }}
+{{- default .Chart.Name .image.repository | replace "/" "-" | lower }}
+{{- end }}
+{{- end }}
