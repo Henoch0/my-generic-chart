@@ -18,8 +18,8 @@ deployment:
 containers:
   - name: "" # Optionaler Wert; wenn leer, wird der Name aus dem Image-Repository abgeleitet
     image:
-      repository: "nginx"
-      tag: "latest"
+      repository: ""
+      tag: ""
       pullPolicy: IfNotPresent
     ports:
       - containerPort: 80
