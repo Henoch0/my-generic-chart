@@ -19,48 +19,33 @@ spec:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
-      replicas: {{ .Values.deployment.replicaCount }}
-      selector:
-        matchLabels:
-          app.kubernetes.io/name: {{ include "common.names.fullname" . }}
-          app.kubernetes.io/instance: {{ .Release.Name }}
-      strategy:
-        rollingUpdate:
-          maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
-          maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
-        type: {{ .Values.deployment.strategy.type }}
-        minReadySeconds: {{ .Values.deployment.strategy.minReadySeconds }}
-      template:
-        metadata:
-          labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
-        spec:
-          serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
-          automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
-          containers:
-          {{- range .Values.containers }}
-          - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
-            image: "{{ .image.repository }}:{{ .image.tag }}"
-            imagePullPolicy: {{ .image.pullPolicy }}
-            ports:
-              {{- toYaml .ports | nindent 14 }}
-            resources:
-              {{- toYaml .resources | nindent 14 }}
-            {{- if .livenessProbe }}
-            livenessProbe:
-              {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
-              httpGet:
-                path: {{ .livenessProbe.httpGet.path }}
-                port: {{ .livenessProbe.httpGet.port }}
-              {{- end }}
-            {{- end }}
-            {{- if .readinessProbe }}
-            readinessProbe:
-              {{- if and .readinessProbe.httpGet .readinessProbe.httpGet.path }}
-              httpGet:
-                path: {{ .readinessProbe.httpGet.path }}
-                port: {{ .readinessProbe.httpGet.port }}
-              {{- end }}
+      serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
+      automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
+      containers:
+        {{- range .Values.containers }}
+        - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
+          image: "{{ .image.repository }}:{{ .image.tag }}"
+          imagePullPolicy: {{ .image.pullPolicy }}
+          ports:
+            {{- toYaml .ports | nindent 12 }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+          {{- if .livenessProbe }}
+          livenessProbe:
+            {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
+            httpGet:
+              path: {{ .livenessProbe.httpGet.path }}
+              port: {{ .livenessProbe.httpGet.port }}
             {{- end }}
           {{- end }}
-          volumes:
-            {{- toYaml .Values.deployment.volumes | nindent 8 }}
+          {{- if .readinessProbe }}
+          readinessProbe:
+            {{- if and .readinessProbe.httpGet .readinessProbe.httpGet.path }}
+            httpGet:
+              path: {{ .readinessProbe.httpGet.path }}
+              port: {{ .readinessProbe.httpGet.port }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      volumes:
+        {{- toYaml .Values.deployment.volumes | nindent 8 }}
