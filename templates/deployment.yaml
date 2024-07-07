@@ -19,7 +19,7 @@ spec:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
+      serviceAccountName: {{ .Values.deployment.serviceAccountName }}
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
       containers:
         {{- range .Values.containers }}
@@ -30,22 +30,22 @@ spec:
             {{- toYaml .ports | nindent 12 }}
           resources:
             {{- toYaml .resources | nindent 12 }}
-          {{- if .livenessProbe }}
           livenessProbe:
-            {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
+            {{- if .livenessProbe }}
             httpGet:
               path: {{ .livenessProbe.httpGet.path }}
               port: {{ .livenessProbe.httpGet.port }}
             {{- end }}
-          {{- end }}
-          {{- if .readinessProbe }}
           readinessProbe:
-            {{- if and .readinessProbe.httpGet .readinessProbe.httpGet.path }}
+            {{- if .readinessProbe }}
             httpGet:
               path: {{ .readinessProbe.httpGet.path }}
               port: {{ .readinessProbe.httpGet.port }}
             {{- end }}
-          {{- end }}
         {{- end }}
       volumes:
-        {{- toYaml .Values.deployment.volumes | nindent 8 }}
+        {{- range .Values.deployment.volumes }}
+        - name: {{ include "common.names.volume" . }}
+          configMap:
+            name: {{ include "common.names.configmap" . }}
+        {{- end }}
