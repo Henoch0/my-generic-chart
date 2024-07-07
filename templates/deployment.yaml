@@ -28,7 +28,12 @@ spec:
       containers:
         {{- range .Values.containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
-          image: "{{ printf "%s/%s:%s" (default "docker.io" .Values.global.imageRegistry) .image.repository .image.tag }}"
+          image: {{- with .Values.global }}
+            {{- $registry := default "docker.io" .imageRegistry }}
+            {{- end }}
+            {{- with .image }}
+            "{{ printf "%s/%s:%s" $registry .repository .tag }}"
+            {{- end }}
           imagePullPolicy: {{ .image.pullPolicy }}
           ports:
             {{- toYaml .ports | nindent 12 }}
