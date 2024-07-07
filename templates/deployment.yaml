@@ -42,9 +42,9 @@ spec:
             image: "{{ .image.repository }}:{{ .image.tag }}"
             imagePullPolicy: {{ .image.pullPolicy }}
             ports:
-              {{- toYaml .ports | nindent 12 }}
+              {{- toYaml .ports | nindent 14 }}
             resources:
-              {{- toYaml .resources | nindent 12 }}
+              {{- toYaml .resources | nindent 14 }}
             {{- if .livenessProbe }}
             livenessProbe:
               {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
