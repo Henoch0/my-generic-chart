@@ -21,7 +21,7 @@ spec:
     spec:
       serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
-      containers:
+        containers:
         {{- range .Values.containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
           image: "{{ .image.repository }}:{{ .image.tag }}"
@@ -30,14 +30,22 @@ spec:
             {{- toYaml .ports | nindent 12 }}
           resources:
             {{- toYaml .resources | nindent 12 }}
+          {{- if .livenessProbe }}
           livenessProbe:
+            {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
             httpGet:
               path: {{ .livenessProbe.httpGet.path }}
               port: {{ .livenessProbe.httpGet.port }}
+            {{- end }}
+          {{- end }}
+          {{- if .readinessProbe }}
           readinessProbe:
+            {{- if and .readinessProbe.httpGet .readinessProbe.httpGet.path }}
             httpGet:
               path: {{ .readinessProbe.httpGet.path }}
               port: {{ .readinessProbe.httpGet.port }}
+            {{- end }}
+          {{- end }}
         {{- end }}
       volumes:
         {{- toYaml .Values.deployment.volumes | nindent 8 }}

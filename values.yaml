@@ -21,7 +21,7 @@ containers:
       tag: "" # Der Benutzer muss dies angeben
       pullPolicy: IfNotPresent
     ports:
-      - containerPort: 8080
+      - containerPort: 80
         name: http
     resources:
       requests:
@@ -33,11 +33,11 @@ containers:
     livenessProbe:
       httpGet:
         path: /
-        port: 8080
+        port: 80
     readinessProbe:
       httpGet:
         path: /
-        port: 8080
+        port: 80
 
 service:
   type: ClusterIP
