@@ -19,33 +19,38 @@ spec:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ default (include "common.names.fullname" .) .Values.deployment.serviceAccountName }}
+      serviceAccountName: {{ .Values.deployment.serviceAccountName }}
       automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
+      imagePullSecrets:
+        {{- range .Values.deployment.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
       containers:
         {{- range .Values.containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
-          image: "{{ .image.repository }}:{{ .image.tag }}"
+          image: "{{ printf "%s/%s:%s" .Values.global.imageRegistry .image.repository .image.tag }}"
           imagePullPolicy: {{ .image.pullPolicy }}
           ports:
             {{- toYaml .ports | nindent 12 }}
           resources:
             {{- toYaml .resources | nindent 12 }}
-          {{- if .livenessProbe }}
-          livenessProbe:
-            {{- if and .livenessProbe.httpGet .livenessProbe.httpGet.path }}
-            httpGet:
-              path: {{ .livenessProbe.httpGet.path }}
-              port: {{ .livenessProbe.httpGet.port }}
-            {{- end }}
-          {{- end }}
-          {{- if .readinessProbe }}
-          readinessProbe:
-            {{- if and .readinessProbe.httpGet .readinessProbe.httpGet.path }}
-            httpGet:
-              path: {{ .readinessProbe.httpGet.path }}
-              port: {{ .readinessProbe.httpGet.port }}
-            {{- end }}
-          {{- end }}
+          env:
+            {{- toYaml .env | nindent 12 }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .volumeMounts | nindent 12 }}
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
         {{- end }}
       volumes:
-        {{- toYaml .Values.deployment.volumes | nindent 8 }}
+        {{- range .Values.deployment.volumes }}
+        - name: {{ .name }}
+          {{- if eq .type "configMap" }}
+          configMap:
+            name: {{ .configMap.name }}
+          {{- else if eq .type "persistentVolumeClaim" }}
+          persistentVolumeClaim:
+            claimName: {{ .claimName }}
+          {{- end }}
+        {{- end }}

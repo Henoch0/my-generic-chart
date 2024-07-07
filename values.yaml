@@ -1,3 +1,5 @@
+global:
+  imageRegistry: ""
 # Default values for my-generic-chart.
 deployment:
   replicaCount: 2
@@ -9,16 +11,15 @@ deployment:
       maxUnavailable: 25%
   serviceAccountName: default
   automountServiceAccountToken: true
-  volumes:
-    - name: "placeholder-vol"
-      configMap:
-        name: "placeholder-config"
+  imagePullSecrets:
+    - name: certchain # Standard Pull Secret
+  volumes: []
 
 containers:
   - name: "" # Optionaler Wert; wenn leer, wird der Name aus dem Image-Repository abgeleitet
     image:
-      repository: "" # Der Benutzer muss dies angeben
-      tag: "" # Der Benutzer muss dies angeben
+      repository: "nginx"
+      tag: "latest"
       pullPolicy: IfNotPresent
     ports:
       - containerPort: 80
@@ -30,14 +31,10 @@ containers:
       limits:
         memory: "256Mi"
         cpu: "500m"
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 80
-    readinessProbe:
-      httpGet:
-        path: /
-        port: 80
+    env: []
+    args: []
+    volumeMounts: []
+    securityContext: {} # Keine Standardwerte
 
 service:
   type: ClusterIP
