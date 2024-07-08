@@ -47,6 +47,7 @@ spec:
             {{- toYaml .volumeMounts | nindent 12 }}
           securityContext:
             {{- toYaml .securityContext | nindent 12 }}
+        {{- end }}
       volumes:
         {{- range .Values.deployment.volumes }}
         - name: {{ .name }}
