@@ -5,6 +5,7 @@ metadata:
   labels: {{ include "common.labels.standard" . | nindent 4 }}
 spec:
   replicas: {{ .Values.deployment.replicaCount }}
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
@@ -14,7 +15,6 @@ spec:
       maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
       maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
     type: {{ .Values.deployment.strategy.type }}
-    minReadySeconds: {{ .Values.deployment.strategy.minReadySeconds }}
   template:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
@@ -25,6 +25,8 @@ spec:
         {{- range .Values.deployment.imagePullSecrets }}
         - name: {{ .name }}
         {{- end }}
+      securityContext: 
+        fsGroup: {{ .Values.securityContext.fsGroup }}
       containers:
         {{- range .Values.containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
@@ -45,7 +47,6 @@ spec:
             {{- toYaml .volumeMounts | nindent 12 }}
           securityContext:
             {{- toYaml .securityContext | nindent 12 }}
-        {{- end }}
       volumes:
         {{- range .Values.deployment.volumes }}
         - name: {{ .name }}

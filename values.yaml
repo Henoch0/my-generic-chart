@@ -1,10 +1,10 @@
 global:
   imageRegistry: "docker.io"
-# Default values for my-generic-chart.
+# Default values for my-generic-chart. Diese Datei wird von Helm verwendet falls der Nutzer keine eigenen Werte angibt. Er muss nuur Image-Repositorium und Tag angeben.
 deployment:
   replicaCount: 2
+  minReadySeconds: 10
   strategy:
-    minReadySeconds: 10
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 25%
