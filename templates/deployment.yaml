@@ -37,7 +37,11 @@ spec:
         {{- toYaml $root.Values.defaults.imagePullSecrets | nindent 10 }}
         {{- end }}
       securityContext:
-        fsGroup: {{ .securityContext.fsGroup | default $root.Values.defaults.securityContext.fsGroup }}
+              {{- if .securityContext }}
+              fsGroup: {{ .securityContext.fsGroup | default $root.Values.defaults.securityContext.fsGroup }}
+              {{- else }}
+              fsGroup: {{ $root.Values.defaults.securityContext.fsGroup }}
+              {{- end }}
       containers:
         {{- range .containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
