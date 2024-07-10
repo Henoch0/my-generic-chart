@@ -13,10 +13,17 @@ spec:
       app.kubernetes.io/name: {{ include "common.names.fullname" $root }}
       app.kubernetes.io/instance: {{ $root.Release.Name }}
   strategy:
+    {{- if .strategy }}
     type: {{ .strategy.type | default $root.Values.defaults.strategy.type }}
     rollingUpdate:
       maxSurge: {{ .strategy.rollingUpdate.maxSurge | default $root.Values.defaults.strategy.rollingUpdate.maxSurge }}
       maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $root.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
+    {{- else }}
+    type: {{ $root.Values.defaults.strategy.type }}
+    rollingUpdate:
+      maxSurge: {{ $root.Values.defaults.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ $root.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
   template:
     metadata:
       labels: {{ include "common.labels.matchLabels" $root | nindent 8 }}
