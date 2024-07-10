@@ -1,35 +1,36 @@
+{{- $root := . -}}
 {{- range .Values.deployments }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.names.fullname" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
-  labels: {{ include "common.labels.standard" (dict "Chart" $.Chart "Release" $.Release "Values" .) | nindent 4 }}
+  name: {{ printf "%s-%s" $root.Release.Name (include "common.names.fullname" $root) | trunc 63 | trimSuffix "-" }}
+  labels: {{ include "common.labels.standard" $root | nindent 4 }}
 spec:
-  replicas: {{ .replicaCount | default $.Values.defaults.replicaCount }}
-  minReadySeconds: {{ .minReadySeconds | default $.Values.defaults.minReadySeconds }}
+  replicas: {{ .replicaCount | default $root.Values.defaults.replicaCount }}
+  minReadySeconds: {{ .minReadySeconds | default $root.Values.defaults.minReadySeconds }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "common.names.fullname" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "common.names.fullname" $root }}
+      app.kubernetes.io/instance: {{ $root.Release.Name }}
   strategy:
-    type: {{ .strategy.type | default $.Values.defaults.strategy.type }}
+    type: {{ .strategy.type | default $root.Values.defaults.strategy.type }}
     rollingUpdate:
-      maxSurge: {{ .strategy.rollingUpdate.maxSurge | default $.Values.defaults.strategy.rollingUpdate.maxSurge }}
-      maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .strategy.rollingUpdate.maxSurge | default $root.Values.defaults.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $root.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
   template:
     metadata:
-      labels: {{ include "common.labels.matchLabels" (dict "Chart" $.Chart "Release" $.Release "Values" .) | nindent 8 }}
+      labels: {{ include "common.labels.matchLabels" $root | nindent 8 }}
     spec:
-      serviceAccountName: {{ .serviceAccountName | default $.Values.defaults.serviceAccountName }}
-      automountServiceAccountToken: {{ .automountServiceAccountToken | default $.Values.defaults.automountServiceAccountToken }}
+      serviceAccountName: {{ .serviceAccountName | default $root.Values.defaults.serviceAccountName }}
+      automountServiceAccountToken: {{ .automountServiceAccountToken | default $root.Values.defaults.automountServiceAccountToken }}
       imagePullSecrets:
         {{- if .imagePullSecrets }}
         {{- toYaml .imagePullSecrets | nindent 10 }}
         {{- else }}
-        {{- toYaml $.Values.defaults.imagePullSecrets | nindent 10 }}
+        {{- toYaml $root.Values.defaults.imagePullSecrets | nindent 10 }}
         {{- end }}
       securityContext:
-        fsGroup: {{ .securityContext.fsGroup | default $.Values.defaults.securityContext.fsGroup }}
+        fsGroup: {{ .securityContext.fsGroup | default $root.Values.defaults.securityContext.fsGroup }}
       containers:
         {{- range .containers }}
         - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
