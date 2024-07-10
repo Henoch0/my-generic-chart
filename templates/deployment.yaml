@@ -12,10 +12,12 @@ spec:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   strategy:
+    {{- with .strategy }}
+    type: {{ .type | default $.Values.defaults.strategy.type }}
     rollingUpdate:
-      maxSurge: {{ .strategy.rollingUpdate.maxSurge | default $.Values.defaults.strategy.rollingUpdate.maxSurge }}
-      maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
-    type: {{ .strategy.type | default $.Values.defaults.strategy.type }}
+      maxSurge: {{ .rollingUpdate.maxSurge | default $.Values.defaults.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .rollingUpdate.maxUnavailable | default $.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
   template:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
@@ -24,17 +26,17 @@ spec:
       automountServiceAccountToken: {{ .automountServiceAccountToken | default $.Values.defaults.automountServiceAccountToken }}
       imagePullSecrets:
         {{- if .imagePullSecrets }}
-          {{- toYaml .imagePullSecrets | nindent 10 }}
+        {{- toYaml .imagePullSecrets | nindent 10 }}
         {{- else }}
-          {{- toYaml $.Values.defaults.imagePullSecrets | nindent 10 }}
+        {{- toYaml $.Values.defaults.imagePullSecrets | nindent 10 }}
         {{- end }}
       securityContext:
         fsGroup: {{ .securityContext.fsGroup | default $.Values.defaults.securityContext.fsGroup }}
       containers:
         {{- range .containers }}
-        - name: {{ include "container.name" (dict "Chart" $.Chart "name" .name "image" .image) }}
-          image: {{- $registry := default "docker.io" $.Values.global.imageRegistry }}
-                {{- $image := default $.Values.defaults.containers.0.image .image }}
+        - name: {{ .name | default (printf "%s-container" $.Release.Name) }}
+          image: {{- $registry := default $.Values.global.imageRegistry }}
+                {{- $image := .image | default $.Values.defaults.containers.0.image }}
                 {{ printf "%s/%s:%s" $registry $image.repository $image.tag }}
           imagePullPolicy: {{ .image.pullPolicy | default $.Values.defaults.containers.0.image.pullPolicy }}
           ports:
@@ -52,8 +54,8 @@ spec:
         {{- end }}
       volumes:
         {{- if .volumes }}
-          {{- toYaml .volumes | nindent 8 }}
+        {{- toYaml .volumes | nindent 8 }}
         {{- else }}
-          {{- toYaml $.Values.defaults.volumes | nindent 8 }}
+        {{- toYaml $.Values.defaults.volumes | nindent 8 }}
         {{- end }}
 {{- end }}
