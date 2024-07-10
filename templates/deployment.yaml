@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.names.fullname" . | default (include "common.names.fullname" $.Values.defaults) }}
-  labels: {{ include "common.labels.standard" . | nindent 4 }}
+  name: {{ include "common.names.fullname" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
+  labels: {{ include "common.labels.standard" (dict "Chart" $.Chart "Release" $.Release "Values" .) | nindent 4 }}
 spec:
   replicas: {{ .replicaCount | default $.Values.defaults.replicaCount }}
   minReadySeconds: {{ .minReadySeconds | default $.Values.defaults.minReadySeconds }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+      app.kubernetes.io/name: {{ include "common.names.fullname" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   strategy:
     type: {{ .strategy.type | default $.Values.defaults.strategy.type }}
@@ -18,7 +18,7 @@ spec:
       maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
   template:
     metadata:
-      labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
+      labels: {{ include "common.labels.matchLabels" (dict "Chart" $.Chart "Release" $.Release "Values" .) | nindent 8 }}
     spec:
       serviceAccountName: {{ .serviceAccountName | default $.Values.defaults.serviceAccountName }}
       automountServiceAccountToken: {{ .automountServiceAccountToken | default $.Values.defaults.automountServiceAccountToken }}
@@ -31,9 +31,8 @@ spec:
       securityContext:
         fsGroup: {{ .securityContext.fsGroup | default $.Values.defaults.securityContext.fsGroup }}
       containers:
-        {{- if or .containers $.Values.defaults.containers }}
-        {{- range or .containers $.Values.defaults.containers }}
-        - name: {{ .name | default (printf "%s-container" $.Release.Name) }}
+        {{- range .containers }}
+        - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "Values" .) }}
           image: {{ $registry := default "docker.io" $.Values.global.imageRegistry }}
                 {{ $image := .image | default (index $.Values.defaults.containers 0).image }}
                 {{ printf "%s/%s:%s" $registry $image.repository $image.tag }}
@@ -41,16 +40,15 @@ spec:
           ports:
             {{- toYaml .ports | nindent 12 }}
           resources:
-            {{- toYaml .resources | nindent 12 }}
+            {{- toYaml ..resources | nindent 12 }}
           env:
             {{- toYaml .env | nindent 12 }}
           args:
-            {{- toYaml .args | nindent 12 }}
+            {{- toYaml ..args | nindent 12 }}
           volumeMounts:
-            {{- toYaml .volumeMounts | nindent 12 }}
+            {{- toYaml ..volumeMounts | nindent 12 }}
           securityContext:
             {{- toYaml .securityContext | nindent 12 }}
-        {{- end }}
         {{- end }}
       volumes:
         {{- if .volumes }}
