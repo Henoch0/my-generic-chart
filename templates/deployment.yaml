@@ -1,40 +1,46 @@
+{{- range .Values.deployments }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.names.fullname" . }}
+  name: {{ include "common.names.fullname" . | default (include "common.names.fullname" $.Values.defaults) }}
   labels: {{ include "common.labels.standard" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.deployment.replicaCount }}
-  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  replicas: {{ .replicaCount | default $.Values.defaults.replicaCount }}
+  minReadySeconds: {{ .minReadySeconds | default $.Values.defaults.minReadySeconds }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   strategy:
     rollingUpdate:
-      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
-      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
-    type: {{ .Values.deployment.strategy.type }}
+      maxSurge: {{ .strategy.rollingUpdate.maxSurge | default $.Values.defaults.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .strategy.rollingUpdate.maxUnavailable | default $.Values.defaults.strategy.rollingUpdate.maxUnavailable }}
+    type: {{ .strategy.type | default $.Values.defaults.strategy.type }}
   template:
     metadata:
       labels: {{ include "common.labels.matchLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ .Values.deployment.serviceAccountName }}
-      automountServiceAccountToken: {{ .Values.deployment.automountServiceAccountToken }}
+      serviceAccountName: {{ .serviceAccountName | default $.Values.defaults.serviceAccountName }}
+      automountServiceAccountToken: {{ .automountServiceAccountToken | default $.Values.defaults.automountServiceAccountToken }}
       imagePullSecrets:
-        {{- range .Values.deployment.imagePullSecrets }}
+        {{- if .imagePullSecrets }}
+        {{- range .imagePullSecrets }}
         - name: {{ .name }}
         {{- end }}
-      securityContext: 
-        fsGroup: {{ .Values.deployment.securityContext.fsGroup }}
+        {{- else }}
+        {{- range $.Values.defaults.imagePullSecrets }}
+        - name: {{ .name }}
+        {{- end }}
+        {{- end }}
+      securityContext:
+        fsGroup: {{ .securityContext.fsGroup | default $.Values.defaults.securityContext.fsGroup }}
       containers:
-        {{- range .Values.containers }}
-        - name: {{ include "container.name" (dict "Chart" $.Chart "Release" $.Release "image" .image "name" .name) }}
+        {{- range .containers }}
+        - name: {{ include "container.name" (dict "Chart" $.Chart "name" .name "image" .image) }}
           image: {{- $registry := default "docker.io" $.Values.global.imageRegistry }}
-                 {{- with .image }}
-                 "{{ printf "%s/%s:%s" $registry .repository .tag }}"
-                 {{- end }}
-          imagePullPolicy: {{ .image.pullPolicy }}
+                {{- $image := default $.Values.defaults.containers.0.image .image }}
+                "{{ printf "%s/%s:%s" $registry $image.repository $image.tag }}"
+          imagePullPolicy: {{ .image.pullPolicy | default $.Values.defaults.containers.0.image.pullPolicy }}
           ports:
             {{- toYaml .ports | nindent 12 }}
           resources:
@@ -49,7 +55,8 @@ spec:
             {{- toYaml .securityContext | nindent 12 }}
         {{- end }}
       volumes:
-        {{- range .Values.deployment.volumes }}
+        {{- if .volumes }}
+        {{- range .volumes }}
         - name: {{ .name }}
           {{- if eq .type "configMap" }}
           configMap:
@@ -59,3 +66,9 @@ spec:
             claimName: {{ .claimName }}
           {{- end }}
         {{- end }}
+        {{- else }}
+        {{- range $.Values.defaults.volumes }}
+        - name: {{ .name }}
+        {{- end }}
+        {{- end }}
+{{- end }}

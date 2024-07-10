@@ -1,15 +1,17 @@
+{{- range .Values.services }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.names.fullname" . }}
-  labels: {{ include "common.labels.standard" . | nindent 4 }}
+  name: {{ include "common.names.fullname" dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" . }}
+  labels: {{ include "common.labels.standard" dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol }}
+      name: {{ .targetPort }}
   selector:
-    app.kubernetes.io/name: {{ include "common.names.fullname" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "common.names.fullname" dict "Values" $.Values "Chart" $.Chart "Release" $.Release }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+{{- end }}

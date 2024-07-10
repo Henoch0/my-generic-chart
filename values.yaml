@@ -1,45 +1,35 @@
 global:
   imageRegistry: "docker.io"
-# Default values for my-generic-chart. Diese Datei wird von Helm verwendet falls der Nutzer keine eigenen Werte angibt. Er muss nuur Image-Repositorium und Tag angeben.
-deployment:
-  replicaCount: 2
+
+defaults:
+  replicaCount: 1
   minReadySeconds: 10
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-  serviceAccountName: default
+      maxSurge: "25%"
+      maxUnavailable: "25%"
+  serviceAccountName: "default"
   automountServiceAccountToken: true
   imagePullSecrets:
-    - name: certchain # Standard Pull Secret
+    - name: "default-secret"
   volumes: []
   securityContext:
     fsGroup: 1000
+  containers:
+    - name: "default-container"
+      image:
+        repository: "example/default"
+        tag: "latest"
+        pullPolicy: "IfNotPresent"
+      ports: []
+      resources: {}
+      env: []
+      args: []
+      volumeMounts: []
+      securityContext: {}
 
-containers:
-  - name: "" # Optionaler Wert; wenn leer, wird der Name aus dem Image-Repository abgeleitet
-    image:
-      repository: ""
-      tag: ""
-      pullPolicy: IfNotPresent
-    ports:
-      - containerPort: 80
-        name: http
-    resources:
-      requests:
-        memory: "128Mi"
-        cpu: "250m"
-      limits:
-        memory: "256Mi"
-        cpu: "500m"
-    env: []
-    args: []
-    volumeMounts: []
-    securityContext: {}
+deployments: []
 
-service:
-  type: ClusterIP
-  port: 8080
-
+service: []
 networkPolicies: []
