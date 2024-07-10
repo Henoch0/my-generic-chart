@@ -2,8 +2,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.names.fullname" dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" . }}
-  labels: {{ include "common.labels.standard" dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" . | nindent 4 }}
+  name: {{ include "common.names.fullname" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) }}
+  labels: {{ include "common.labels.standard" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) | nindent 4 }}
 spec:
   type: {{ .type }}
   ports:
@@ -12,6 +12,6 @@ spec:
       protocol: {{ .protocol }}
       name: {{ .targetPort }}
   selector:
-    app.kubernetes.io/name: {{ include "common.names.fullname" dict "Values" $.Values "Chart" $.Chart "Release" $.Release }}
+    app.kubernetes.io/name: {{ include "common.names.fullname" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release) }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
 {{- end }}
