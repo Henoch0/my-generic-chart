@@ -1,6 +1,13 @@
-{{/* Common labels for all your templates */}}
-{{- define "common.labels.standard" -}}
-app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+{{/* Helper für vollständig qualifizierten Namen mit zufälligem Suffix */}}
+{{- define "common.names.fullname-with-suffix" -}}
+{{- $name := default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- $suffix := randAlphaNum 5 }}
+{{ printf "%s-%s" $name $suffix }}
+{{- end }}
+
+{{/* Erweiterte Standardlabels, die ein einzigartiges Suffix verwenden */}}
+{{- define "common.labels.standard-with-suffix" -}}
+app.kubernetes.io/name: {{ include "common.names.fullname-with-suffix" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.Version }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}

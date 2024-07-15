@@ -1,10 +1,11 @@
+{{- $suffix := printf "%s-%s" $.Release.Name .name | sha256sum | trunc 5 }}
 {{- $root := . -}}
 {{- range .Values.deployments }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-%s" $root.Release.Name (include "common.names.fullname" $root) | trunc 63 | trimSuffix "-" }}
-  labels: {{ include "common.labels.standard" $root | nindent 4 }}
+  name: {{ include "common.names.fullname-with-suffix" $root }}
+  labels: {{ include "common.labels.standard-with-suffix" $root | nindent 4 }}
 spec:
   replicas: {{ .replicaCount | default $root.Values.defaults.replicaCount }}
   minReadySeconds: {{ .minReadySeconds | default $root.Values.defaults.minReadySeconds }}
@@ -12,6 +13,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" $root }}
       app.kubernetes.io/instance: {{ $root.Release.Name }}
+      deployment.unique-label: {{ $suffix }}
   strategy:
     {{- if .strategy }}
     type: {{ .strategy.type | default $root.Values.defaults.strategy.type }}
@@ -26,7 +28,9 @@ spec:
     {{- end }}
   template:
     metadata:
-      labels: {{ include "common.labels.matchLabels" $root | nindent 8 }}
+        app.kubernetes.io/name: {{ include "common.names.fullname" $root }}
+        app.kubernetes.io/instance: {{ $root.Release.Name }}
+        deployment.unique-label: {{ $suffix }}
     spec:
       serviceAccountName: {{ .serviceAccountName | default $root.Values.defaults.serviceAccountName }}
       automountServiceAccountToken: {{ .automountServiceAccountToken | default $root.Values.defaults.automountServiceAccountToken }}

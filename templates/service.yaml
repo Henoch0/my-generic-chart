@@ -1,9 +1,11 @@
+{{- $suffix := printf "%s-%s" $.Release.Name .name | sha256sum | trunc 5 }}
+
 {{- range .Values.services }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "common.names.fullname" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) }}
-  labels: {{ include "common.labels.standard" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) | nindent 4 }}
+   name: {{ include "common.names.fullname-with-suffix" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) }}
+  labels: {{ include "common.labels.standard-with-suffix" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release "Service" .) | nindent 4 }}
 spec:
   type: {{ .type }}
   ports:
@@ -14,4 +16,5 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "common.names.fullname" (dict "Values" $.Values "Chart" $.Chart "Release" $.Release) }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
+    deployment.unique-label: {{ $suffix }}
 {{- end }}
