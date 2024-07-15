@@ -1,4 +1,4 @@
-{{- $suffix := printf "%s-%s" $.Release.Name .name | sha256sum | trunc 5 }}
+{{- $suffix := printf "%s-%s" $.Release.Name .name | sha256sum | trunc 5 | quote }}
 {{- $root := . -}}
 {{- range .Values.deployments }}
 apiVersion: apps/v1
