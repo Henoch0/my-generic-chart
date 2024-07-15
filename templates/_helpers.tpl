@@ -2,8 +2,9 @@
 {{- define "common.names.fullname-with-suffix" -}}
 {{- $name := default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- $suffix := randAlphaNum 5 }}
-{{ printf "%s-%s" $name $suffix }}
+{{ printf "%s-%s" $name $suffix | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
 
 {{/* Erweiterte Standardlabels, die ein einzigartiges Suffix verwenden */}}
 {{- define "common.labels.standard-with-suffix" -}}
